@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Vite cache
+.vite/
+
+# Output of 'npm pack'
 node_modules
 dist
 dist-ssr
