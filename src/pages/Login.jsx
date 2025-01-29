@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { login, isUserLoggedIn } from '../services/Services';
 import { useNavigate } from 'react-router';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../context/useUser';
 
 export default function Login() {
     const { login: loginContext } = useUser();

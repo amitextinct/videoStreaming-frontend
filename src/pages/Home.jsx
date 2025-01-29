@@ -1,4 +1,4 @@
-import { useUser } from '../context/UserContext';
+import { useUser } from '../context/useUser';
 import '../index.css';
 
 function Home() {

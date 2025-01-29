@@ -1,7 +1,7 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { BellIcon } from '@heroicons/react/24/outline'
 import vidzyLogo from '../assets/logo/vidzy.svg'
-import { useUser } from '../context/UserContext';
+import { useUser } from '../context/useUser';
 
 const navigation = [
   { name: 'Home', href: '#', current: true },
