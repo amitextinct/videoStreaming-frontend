@@ -52,14 +52,14 @@ export default function Navbar() {
                 </DisclosureButton>
               </div>
 
-              {/* Logo section */}
+              {/* Logo section - update spacing classes */}
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div 
-                  className="flex shrink-0 items-start cursor-pointer" 
+                  className="flex shrink-0 items-center justify-center cursor-pointer" 
                   onClick={handleLogoClick}
                 >
                   <img alt="Vidzy" src={vidzyLogo} className="h-8 w-auto" />
-                  <p className="ml-4 text-2xl text-white hidden sm:block">Vidzy</p>
+                  <p className="ml-4 text-2xl text-white sm:ml-4 sm:block">Vidzy</p>
                 </div>
                 {user && (
                   <div className="hidden sm:ml-6 sm:block">
