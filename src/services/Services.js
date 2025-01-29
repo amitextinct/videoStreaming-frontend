@@ -51,11 +51,21 @@ export const login = async (credentials) => {
 
 export const signup = async (userData) => {
   try {
-    const response = await apiClient.post("/users/signup", userData);
-    return response.data;
+    const response = await apiClient.post("/users/register", userData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    });
+    return {
+      success: true,
+      message: 'Signup successful',
+      data: response.data
+    };
   } catch (error) {
-    console.error("Signup error:", error);
-    throw error;
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Signup failed',
+    };
   }
 };
 

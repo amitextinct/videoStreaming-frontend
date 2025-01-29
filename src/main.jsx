@@ -3,9 +3,12 @@ import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } 
 import { UserProvider } from './context/UserContext'
 import Layout from './Layout.jsx'
 import Login from './pages/Login.jsx'
+import SignUp from './pages/SignUp.jsx'
 import Home from './pages/Home.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import AuthWrapper from './components/AuthWrapper.jsx'
+import NotFound from './pages/NotFound.jsx'
+import WorkInProgress from './pages/WorkInProgress.jsx' // Add this import
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -17,6 +20,9 @@ const router = createBrowserRouter(
         </AuthWrapper>
       } />
       <Route path="login" element={<Login />} />
+      <Route path="signup" element={<SignUp />} />
+      <Route path="wip" element={<WorkInProgress />} /> {/* Add this route */}
+      <Route path="*" element={<NotFound />} /> {/* Add this catch-all route */}
     </Route>
   )
 )
