@@ -2,6 +2,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuIt
 import { BellIcon } from '@heroicons/react/24/outline'
 import vidzyLogo from '../assets/logo/vidzy.svg'
 import { useUser } from '../context/useUser';
+import { useNavigate } from 'react-router';
 
 const navigation = [
   { name: 'Home', href: '#', current: true },
@@ -17,6 +18,7 @@ function classNames(...classes) {
 
 export default function Navbar() {
   const { user, logout } = useUser();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
@@ -110,10 +112,16 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex items-center space-x-4">
-              <button className="rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">
+              <button 
+                onClick={() => navigate('/login')}
+                className="rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600"
+              >
                 Login
               </button>
-              <button className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              >
                 Sign up
               </button>
             </div>

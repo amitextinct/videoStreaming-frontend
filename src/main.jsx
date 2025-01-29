@@ -4,15 +4,17 @@ import { UserProvider } from './context/UserContext'
 import Layout from './Layout.jsx'
 import Login from './pages/Login.jsx'
 import Home from './pages/Home.jsx'
-import ProtectedRoute from './components/ProtectedRoute.jsx'
+import LandingPage from './pages/LandingPage.jsx'
+import AuthWrapper from './components/AuthWrapper.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={
-        <ProtectedRoute>
+        <AuthWrapper>
           <Home />
-        </ProtectedRoute>
+          <LandingPage />
+        </AuthWrapper>
       } />
       <Route path="login" element={<Login />} />
     </Route>
