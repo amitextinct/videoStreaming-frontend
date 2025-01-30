@@ -8,7 +8,8 @@ import Home from './pages/Home.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import AuthWrapper from './components/AuthWrapper.jsx'
 import NotFound from './pages/NotFound.jsx'
-import WorkInProgress from './pages/WorkInProgress.jsx' // Add this import
+import WorkInProgress from './pages/WorkInProgress.jsx'
+import Watching from './pages/Watching.jsx' // Add this import
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,7 +22,8 @@ const router = createBrowserRouter(
       } />
       <Route path="login" element={<Login />} />
       <Route path="signup" element={<SignUp />} />
-      <Route path="wip" element={<WorkInProgress />} /> {/* Add this route */}
+      <Route path="wip" element={<WorkInProgress />} />
+      <Route path="watch/:videoId" element={<Watching />} /> {/* Add this route */}
       <Route path="*" element={<NotFound />} /> {/* Add this catch-all route */}
     </Route>
   )

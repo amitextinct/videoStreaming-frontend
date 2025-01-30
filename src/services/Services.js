@@ -95,3 +95,23 @@ export const logout = () => {
   localStorage.removeItem("refreshToken");
   return true;
 };
+
+export const getVideos = async (page = 1, limit = 9) => {
+  try {
+    const response = await apiClient.get(`/videos?page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const getVideoById = async (videoId) => {
+  try {
+    const response = await apiClient.get(`/videos/${videoId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching video:", error);
+    return { success: false, message: error.message };
+  }
+};

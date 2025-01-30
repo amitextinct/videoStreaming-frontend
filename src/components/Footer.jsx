@@ -4,7 +4,7 @@ function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bottom-0 w-full bg-white dark:bg-gray-900">
+    <footer className="mt-auto w-full bg-white dark:bg-gray-900">
       <div className="container px-6 py-8 mx-auto">
         <div className="flex flex-col items-center text-center">
           <div className="flex items-center">
@@ -28,13 +28,13 @@ function Footer() {
 
           <div className="flex mt-3 -mx-2 sm:mt-0">
             {["Teams", "Privacy", "Cookies"].map((item) => (
-              <a
+              <p
                 key={item}
-                href="#"
+                href=""
                 className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500 dark:hover:text-gray-300"
               >
                 {item}
-              </a>
+              </p>
             ))}
           </div>
         </div>
