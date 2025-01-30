@@ -1,36 +1,57 @@
 import { useUser } from '../context/useUser';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getVideos } from '../services/Services';
 import Skeletal from '../components/Skeletal';
 import '../index.css';
 import { useNavigate } from 'react-router';
+import useVideo from '../context/useVideo';
 
 function Home() {
   const { user } = useUser();
-  const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  const [localTotalPages, setLocalTotalPages] = useState(0);
+  const { ownerDetails, videos, updateVideos, getCachedVideos } = useVideo();
   const navigate = useNavigate();
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchVideos = async () => {
-      setIsLoading(true);
+      const cachedData = getCachedVideos?.(currentPage);
+      if (cachedData) {
+        if (mounted) {
+          setIsLoading(false);
+          updateVideos(cachedData.videos, currentPage, cachedData.totalPages);
+          setLocalTotalPages(cachedData.totalPages);
+        }
+        return;
+      }
+
+      if (mounted) setIsLoading(true);
       try {
         const response = await getVideos(currentPage, 9);
-        if (response.success) {
-          setVideos(response.data.videos);
-          setTotalPages(response.data.totalPages);
+        if (response.success && mounted) {
+          updateVideos(response.data.videos, currentPage, response.data.totalPages);
+          setLocalTotalPages(response.data.totalPages);
         }
       } catch (error) {
         console.error('Error fetching videos:', error);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+          initialLoadRef.current = false;
+        }
       }
     };
 
     fetchVideos();
-  }, [currentPage]);
+    
+    return () => {
+      mounted = false;
+    };
+  }, [currentPage, getCachedVideos, updateVideos]);
 
   // Add duration formatter function
   const formatDuration = (seconds) => {
@@ -38,6 +59,8 @@ function Home() {
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
+
+  const getSecureUrl = (url) => url.replace('http://', 'https://');
 
   const handleVideoClick = (videoId) => {
     navigate(`/watch/${videoId}`);
@@ -62,7 +85,7 @@ function Home() {
             {/* Thumbnail container with duration */}
             <div className="relative">
               <img 
-                src={video.thumbnail} 
+                src={getSecureUrl(video.thumbnail)} 
                 alt={video.title}
                 className="w-full h-48 object-cover"
               />
@@ -71,10 +94,19 @@ function Home() {
               </span>
             </div>
             <div className="p-4">
-              <h3 className="font-semibold text-lg">{video.title}</h3>
-              <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-                <span>{video.owner.fullName}</span>
-                <span>{video.views} views</span>
+              <h3 className="font-semibold text-lg mb-2">{video.title}</h3>
+              <div className="flex items-center gap-3">
+                {ownerDetails[video.owner?.username]?.avatar && (
+                  <img 
+                    src={ownerDetails[video.owner.username].avatar}
+                    alt={video.owner.fullName}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                )}
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{video.owner.fullName}</span>
+                  <span className="text-xs text-gray-500">{video.views} views</span>
+                </div>
               </div>
             </div>
           </div>
@@ -95,13 +127,13 @@ function Home() {
           Previous
         </button>
         <span className="px-4 py-2">
-          Page {currentPage} of {totalPages}
+          Page {currentPage} of {localTotalPages}
         </span>
         <button
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, localTotalPages))}
+          disabled={currentPage === localTotalPages}
           className={`px-4 py-2 rounded ${
-            currentPage === totalPages 
+            currentPage === localTotalPages 
             ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
             : 'bg-indigo-600 text-white hover:bg-indigo-500'
           }`}

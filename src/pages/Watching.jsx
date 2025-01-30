@@ -1,51 +1,66 @@
-import { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
-import { getVideoById } from '../services/Services';
+import { useEffect } from 'react';
 import VideoPlayer from '../components/VideoPlayer';
-import Skeletal from '../components/Skeletal';
+import useVideo from '../context/useVideo';
+import { Navigate } from 'react-router';
 
 export default function Watching() {
   const { videoId } = useParams();
-  const [video, setVideo] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  const { videos, ownerDetails, fetchOwnerDetails } = useVideo();
+  
+  const video = videos.find(v => v._id === videoId);
+  
   useEffect(() => {
-    const fetchVideo = async () => {
-      try {
-        const response = await getVideoById(videoId);
-        if (response.success) {
-          setVideo(response.data);
-        } else {
-          setError(response.message);
-        }
-      } catch (err) {
-        console.error('Error fetching video:', err);
-        setError('Failed to load video');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (video?.owner?.username && !ownerDetails[video.owner.username]) {
+      fetchOwnerDetails(video.owner.username);
+    }
+  }, [video, ownerDetails, fetchOwnerDetails]);
 
-    fetchVideo();
-  }, [videoId]);
+  if (!video) {
+    return <Navigate to="/404" />;
+  }
 
-  if (isLoading) return <Skeletal />;
-  if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
-  if (!video) return <div className="text-center p-4">Video not found</div>;
+  const channelData = ownerDetails[video.owner?.username];
+  const secureVideoUrl = video.videoFile.replace('http://', 'https://');
 
   return (
-    <div className="container mx-auto px-4 py-8 pt-20"> {/* Added pt-20 for navbar space */}
-      <VideoPlayer videoUrl={video.videoFile} title={video.title} />
-      <div className="mt-4">
+    <div className="container mx-auto px-4 py-8 pt-20">
+      <VideoPlayer videoUrl={secureVideoUrl} title={video.title} />
+      
+      {/* Video info with channel details */}
+      <div className="mt-4 space-y-4">
         <h1 className="text-2xl font-bold">{video.title}</h1>
-        <div className="flex justify-between items-center mt-2">
-          <p className="text-gray-600">{video.views} views</p>
-          <p className="text-gray-600">
-            {new Date(video.createdAt).toLocaleDateString()}
-          </p>
+        
+        {/* Channel info section */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-4">
+            {channelData?.avatar && (
+              <img
+                src={channelData.avatar}
+                alt={channelData.fullName}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            )}
+            <div>
+              <h3 className="font-medium">{video.owner.fullName}</h3>
+              <p className="text-sm text-gray-500">
+                {channelData?.subscribersCount || 0} subscribers
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <p className="text-gray-600">{video.views} views</p>
+            <span className="text-gray-400">•</span>
+            <p className="text-gray-600">
+              {new Date(video.createdAt).toLocaleDateString()}
+            </p>
+          </div>
         </div>
-        <p className="mt-4 text-gray-700">{video.description}</p>
+
+        {/* Video description */}
+        <p className="mt-4 text-gray-700 whitespace-pre-wrap">
+          {video.description}
+        </p>
       </div>
     </div>
   );

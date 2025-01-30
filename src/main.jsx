@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router'
 import { UserProvider } from './context/UserContext'
+import { VideoProvider } from './context/videoContext'
 import Layout from './Layout.jsx'
 import Login from './pages/Login.jsx'
 import SignUp from './pages/SignUp.jsx'
@@ -32,6 +33,8 @@ const router = createBrowserRouter(
 const root = createRoot(document.getElementById('root'))
 root.render(
   <UserProvider>
-    <RouterProvider router={router} />
+    <VideoProvider>
+      <RouterProvider router={router} />
+    </VideoProvider>
   </UserProvider>
 )

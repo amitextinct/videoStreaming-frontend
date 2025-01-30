@@ -106,12 +106,12 @@ export const getVideos = async (page = 1, limit = 9) => {
   }
 };
 
-export const getVideoById = async (videoId) => {
+export const getChannel = async (username) => {
   try {
-    const response = await apiClient.get(`/videos/${videoId}`);
+    const response = await apiClient.get(`/users/channel/${username}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching video:", error);
+    console.error("Error fetching channel:", error);
     return { success: false, message: error.message };
   }
 };
