@@ -9,7 +9,7 @@
       "destination": "/signup"
     },
     {
-      "source": "/watch",
+      "source": "/watch/:id",
       "destination": "/"
     }
   ]
