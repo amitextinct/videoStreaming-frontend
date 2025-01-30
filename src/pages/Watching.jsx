@@ -40,6 +40,8 @@ export default function Watching() {
                 src={getSecureUrl(channelData.avatar)}
                 alt={channelData.fullName}
                 className="w-12 h-12 rounded-full object-cover"
+                loading="lazy"
+                crossOrigin="anonymous"
               />
             )}
             <div>

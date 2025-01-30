@@ -87,6 +87,8 @@ function Home() {
                 src={getSecureUrl(video.thumbnail)} 
                 alt={video.title}
                 className="w-full h-48 object-cover"
+                loading="lazy"
+                crossOrigin="anonymous"
               />
               <span className="absolute bottom-2 right-2 bg-black/75 text-white px-2 py-1 text-xs rounded">
                 {formatDuration(video.duration)}
@@ -100,6 +102,8 @@ function Home() {
                     src={getSecureUrl(ownerDetails[video.owner.username].avatar)}
                     alt={video.owner.fullName}
                     className="w-8 h-8 rounded-full object-cover"
+                    loading="lazy"
+                    crossOrigin="anonymous"
                   />
                 )}
                 <div className="flex flex-col">

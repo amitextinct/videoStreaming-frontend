@@ -239,7 +239,8 @@ export default function VideoPlayer({ videoUrl, title }) {
     crossOrigin: "anonymous",
     referrerPolicy: "no-referrer",
     playsInline: true,
-    title: title
+    title: title,
+    loading: "lazy"
   };
 
   return (
