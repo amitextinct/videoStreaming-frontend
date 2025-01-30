@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import VideoPlayer from '../components/VideoPlayer';
 import useVideo from '../context/useVideo';
 import { Navigate } from 'react-router';
+import { getSecureUrl } from '../utils/secureUrl';
 
 export default function Watching() {
   const { videoId } = useParams();
@@ -21,7 +22,7 @@ export default function Watching() {
   }
 
   const channelData = ownerDetails[video.owner?.username];
-  const secureVideoUrl = video.videoFile.replace('http://', 'https://');
+  const secureVideoUrl = getSecureUrl(video.videoFile);
 
   return (
     <div className="container mx-auto px-4 py-8 pt-20">
@@ -36,7 +37,7 @@ export default function Watching() {
           <div className="flex items-center space-x-4">
             {channelData?.avatar && (
               <img
-                src={channelData.avatar}
+                src={getSecureUrl(channelData.avatar)}
                 alt={channelData.fullName}
                 className="w-12 h-12 rounded-full object-cover"
               />

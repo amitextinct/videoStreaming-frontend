@@ -234,6 +234,14 @@ export default function VideoPlayer({ videoUrl, title }) {
     };
   }, [isDragging, handleProgressMouseMove]);
 
+  // Update video configuration
+  const videoConfig = {
+    crossOrigin: "anonymous",
+    referrerPolicy: "no-referrer",
+    playsInline: true,
+    title: title
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -244,13 +252,15 @@ export default function VideoPlayer({ videoUrl, title }) {
       <video
         ref={videoRef}
         className="w-full h-full cursor-pointer"
-        title={title}
-        playsInline
         onClick={handlePlayPause}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        {...videoConfig}
       >
-        <source src={videoUrl} type="video/mp4" />
+        <source 
+          src={videoUrl} 
+          type="video/mp4"
+        />
         Your browser does not support the video tag.
       </video>
 

@@ -5,6 +5,7 @@ import Skeletal from '../components/Skeletal';
 import '../index.css';
 import { useNavigate } from 'react-router';
 import useVideo from '../context/useVideo';
+import { getSecureUrl } from '../utils/secureUrl';
 
 function Home() {
   const { user } = useUser();
@@ -60,8 +61,6 @@ function Home() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const getSecureUrl = (url) => url.replace('http://', 'https://');
-
   const handleVideoClick = (videoId) => {
     navigate(`/watch/${videoId}`);
   };
@@ -98,7 +97,7 @@ function Home() {
               <div className="flex items-center gap-3">
                 {ownerDetails[video.owner?.username]?.avatar && (
                   <img 
-                    src={ownerDetails[video.owner.username].avatar}
+                    src={getSecureUrl(ownerDetails[video.owner.username].avatar)}
                     alt={video.owner.fullName}
                     className="w-8 h-8 rounded-full object-cover"
                   />
