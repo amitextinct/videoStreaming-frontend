@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Tab } from '@headlessui/react';
 import { getChannelProfile, updateProfileImage } from '../services/channelService';
+import { fetchTweets } from '../services/Services';
 import ChannelHeader from '../components/channel/ChannelHeader';
-import VideosList from '../components/dashboard/VideosList';
+import ChannelVideos from '../components/channel/ChannelVideos';
+import ChannelTweetsList from '../components/channel/ChannelTweetsList';
 import { useUser } from '../context/useUser';
 import { toast } from 'react-hot-toast';
 
@@ -16,18 +18,35 @@ export default function Channel() {
   const navigate = useNavigate();
   const { user } = useUser();
   const [channel, setChannel] = useState(null);
+  const [tweets, setTweets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadChannel = async () => {
+    const loadChannelData = async () => {
       try {
         setIsLoading(true);
-        const response = await getChannelProfile(username);
-        if (response.success) {
-          setChannel(response.data);
+        const [channelResponse, tweetsResponse] = await Promise.all([
+          getChannelProfile(username),
+          channel?._id ? fetchTweets(1, 10, channel._id) : null
+        ].filter(Boolean));
+
+        if (channelResponse.success) {
+          setChannel(channelResponse.data);
+          
+          // Fetch tweets after we have the channel ID
+          if (!channel?._id && channelResponse.data._id) {
+            const tweetsData = await fetchTweets(1, 10, channelResponse.data._id);
+            if (tweetsData.success) {
+              setTweets(tweetsData.data);
+            }
+          }
         } else {
-          toast.error(response.message);
+          toast.error(channelResponse.message);
           navigate('/404');
+        }
+
+        if (tweetsResponse?.success) {
+          setTweets(tweetsResponse.data);
         }
       } catch {
         toast.error('Failed to load channel');
@@ -37,8 +56,8 @@ export default function Channel() {
       }
     };
 
-    loadChannel();
-  }, [username, navigate]);
+    loadChannelData();
+  }, [username, navigate, channel?._id]);
 
   const handleImageUpdate = async (type, file) => {
     if (!user || user._id !== channel._id) return;
@@ -70,8 +89,14 @@ export default function Channel() {
   }
 
   const tabs = [
-    { name: 'Videos', content: <VideosList videos={[]} /> },
-    { name: 'About', content: <div className="p-4">Channel description and details</div> }
+    { 
+      name: 'Videos', 
+      content: channel && <ChannelVideos userId={channel._id} />
+    },
+    { 
+      name: 'Tweets', 
+      content: <ChannelTweetsList tweets={tweets} />
+    }
   ];
 
   return (
