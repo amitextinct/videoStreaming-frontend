@@ -9,7 +9,9 @@ export default function SubscribeButton({
   initialIsSubscribed = false,
   subscriberCount = 0,
   onSubscriptionChange,
-  size = 'md'
+  size = 'md',
+  showCount = true,
+  className = ''
 }) {
   const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
   const [count, setCount] = useState(subscriberCount);
@@ -57,6 +59,7 @@ export default function SubscribeButton({
   }, [user, channelId, isSubscribed, count, onSubscriptionChange]);
 
   const sizeClasses = {
+    xs: 'px-2 py-1 text-xs',
     sm: 'px-3 py-1 text-sm',
     md: 'px-4 py-2',
     lg: 'px-6 py-2.5 text-lg'
@@ -71,12 +74,14 @@ export default function SubscribeButton({
           ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' 
           : 'bg-red-600 text-white hover:bg-red-700'}
         transition-all duration-200 disabled:opacity-50
-        flex items-center gap-2`}
+        flex items-center gap-2 ${className}`}
     >
       <span>{isSubscribed ? 'Subscribed' : 'Subscribe'}</span>
-      <span className="text-sm">
-        {count.toLocaleString()}
-      </span>
+      {showCount && (
+        <span className={`${size === 'lg' ? 'text-sm' : 'text-xs'}`}>
+          {count.toLocaleString()}
+        </span>
+      )}
     </button>
   );
 }
@@ -86,5 +91,7 @@ SubscribeButton.propTypes = {
   initialIsSubscribed: PropTypes.bool,
   subscriberCount: PropTypes.number,
   onSubscriptionChange: PropTypes.func,
-  size: PropTypes.oneOf(['sm', 'md', 'lg'])
+  size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg']),
+  showCount: PropTypes.bool,
+  className: PropTypes.string
 };

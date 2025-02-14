@@ -1,11 +1,22 @@
 import { useNavigate, useLocation } from 'react-router';
 import PropTypes from 'prop-types';
 import { getSecureUrl } from '../utils/secureUrl';
+import useVideo from '../context/useVideo';
+import { useEffect } from 'react';
 
 export default function VideoCard({ video }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { ownerDetails, fetchOwnerDetails } = useVideo();
   const isSearchPage = location.pathname === '/search';
+
+  useEffect(() => {
+    if (video?.owner?.username && !ownerDetails[video.owner.username]) {
+      fetchOwnerDetails(video.owner.username);
+    }
+  }, [video.owner.username, ownerDetails, fetchOwnerDetails]);
+
+  const channelData = ownerDetails[video.owner?.username];
 
   const formatDuration = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -50,10 +61,14 @@ export default function VideoCard({ video }) {
     }
   };
 
+  const handleVideoClick = () => {
+    navigate(`/watch/${video._id}`);
+  };
+
   return (
     <div 
       className="flex flex-col group cursor-pointer"
-      onClick={() => navigate(`/watch/${video._id}`)}
+      onClick={handleVideoClick}
     >
       {/* Thumbnail container */}
       <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
@@ -69,21 +84,33 @@ export default function VideoCard({ video }) {
       </div>
 
       {/* Video info */}
-      <div className="mt-2 flex gap-x-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
-            {video.title}
-          </h3>
-          <p 
-            className={`mt-1 text-sm text-gray-500 ${isSearchPage ? 'cursor-pointer hover:text-indigo-600' : ''}`}
-            onClick={handleChannelClick}
-          >
-            {video.owner.fullName || video.owner.username}
-          </p>
-          <div className="flex items-center gap-x-1 text-sm text-gray-500">
-            <span>{formatViews(video.views)}</span>
-            <span>•</span>
-            <span>{formatTimeAgo(video.createdAt)}</span>
+      <div className="mt-4 px-4 pb-4">
+        <div className="flex gap-3">
+          <div className="flex-shrink-0">
+            <img
+              src={getSecureUrl(channelData?.avatar)}
+              alt={channelData?.fullName || video.owner?.fullName}
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-white/50"
+              onError={(e) => {
+                e.target.src = `https://ui-avatars.com/api/?name=${video.owner?.fullName || 'U'}&background=random`;
+              }}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+              {video.title}
+            </h3>
+            <p 
+              className="mt-1 text-sm text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
+              onClick={handleChannelClick}
+            >
+              {video.owner.fullName || video.owner.username}
+            </p>
+            <div className="flex items-center gap-x-1 text-sm text-gray-500">
+              <span>{formatViews(video.views)}</span>
+              <span>•</span>
+              <span>{formatTimeAgo(video.createdAt)}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -100,9 +127,10 @@ VideoCard.propTypes = {
     views: PropTypes.number.isRequired,
     createdAt: PropTypes.string.isRequired,
     owner: PropTypes.shape({
-      _id: PropTypes.string.isRequired,  // Add this line
+      _id: PropTypes.string.isRequired,
       username: PropTypes.string.isRequired,
       fullName: PropTypes.string,
+      avatar: PropTypes.string,  // Added avatar prop validation
     }).isRequired,
   }).isRequired,
 };

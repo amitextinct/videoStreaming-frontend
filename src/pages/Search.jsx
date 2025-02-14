@@ -37,6 +37,7 @@ export default function Search() {
     e.preventDefault();
     if (searchQuery.trim()) {
       setSearchParams({ q: searchQuery });
+      updateVideos([], 1, 0); // Clear previous results before new search
       fetchVideos(1, searchQuery);
     }
   };

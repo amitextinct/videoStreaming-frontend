@@ -12,7 +12,7 @@ export default function ChannelHeader({ channel }) {
   return (
     <div className="relative bg-white rounded-lg shadow overflow-hidden">
       {/* Cover Image */}
-      <div className="h-48 w-full relative">
+      <div className="h-32 sm:h-48 w-full relative">
         <img
           src={getSecureUrl(channel.coverImage) || defaultCover}
           alt="Channel Cover"
@@ -20,22 +20,22 @@ export default function ChannelHeader({ channel }) {
         />
       </div>
 
-      <div className="relative px-6 pb-6">
+      <div className="relative px-4 sm:px-6 pb-6">
         {/* Avatar */}
-        <div className="absolute -top-16 left-6">
+        <div className="absolute -top-12 sm:-top-16 left-4 sm:left-6">
           <img
             src={getSecureUrl(channel.avatar) || defaultAvatar}
             alt={channel.fullName}
-            className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg object-cover"
           />
         </div>
 
         {/* Channel Info */}
-        <div className="pt-20 flex justify-between items-end">
+        <div className="pt-14 sm:pt-20 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{channel.fullName}</h1>
-            <p className="text-gray-500">@{channel.username}</p>
-            <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{channel.fullName}</h1>
+            <p className="text-sm sm:text-base text-gray-500">@{channel.username}</p>
+            <div className="mt-2 flex items-center space-x-4 text-xs sm:text-sm text-gray-500">
               <span>{channel.subscribersCount.toLocaleString()} subscribers</span>
               <span>{channel.channelsSubscribedToCount.toLocaleString()} subscribed</span>
             </div>
@@ -46,6 +46,7 @@ export default function ChannelHeader({ channel }) {
               initialIsSubscribed={channel.isSubscribed}
               subscriberCount={channel.subscribersCount}
               size="lg"
+              showCount={false}
             />
           )}
         </div>

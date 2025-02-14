@@ -1,6 +1,7 @@
 import { createContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { getChannel } from '../services/Services';
+import apiClient from '../utils/axios';  // Add this import
 
 const VideoContext = createContext();
 
@@ -9,6 +10,7 @@ function VideoProvider({ children }) {
   const [ownerDetails, setOwnerDetails] = useState({});
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const updateOwnerDetails = useCallback((username, details) => {
     setOwnerDetails(prev => ({
@@ -51,6 +53,21 @@ function VideoProvider({ children }) {
     setTotalPages(0);
   }, []);
 
+  const fetchInitialVideos = useCallback(async () => {
+    if (isInitialized) return;
+    try {
+      const response = await apiClient.get('/videos?page=1&limit=9&sortType=-1&isPublished=true');
+      if (response.data.success) {
+        setVideos(response.data.data.videos);
+        setTotalPages(response.data.data.totalPages);
+        setCurrentPage(1);
+        setIsInitialized(true);
+      }
+    } catch (error) {
+      console.error('Error fetching initial videos:', error);
+    }
+  }, [isInitialized]);
+
   const value = {
     videos,
     updateVideos,
@@ -58,7 +75,9 @@ function VideoProvider({ children }) {
     ownerDetails,
     currentPage,
     totalPages,
-    fetchOwnerDetails
+    fetchOwnerDetails,
+    fetchInitialVideos,
+    isInitialized
   };
 
   return (
