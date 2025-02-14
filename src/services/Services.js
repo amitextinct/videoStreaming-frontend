@@ -115,3 +115,104 @@ export const getChannel = async (username) => {
     return { success: false, message: error.message };
   }
 };
+
+// Tweet-related functions
+export const fetchTweets = async (page = 1, limit = 10, userId = null) => {
+  try {
+    const endpoint = userId ? `/tweets/user/${userId}` : '/tweets';
+    const response = await apiClient.get(`${endpoint}?page=${page}&limit=${limit}`);
+    // Ensure likes data is included in the response
+    if (response.data.success) {
+      response.data.data = response.data.data.map(tweet => ({
+        ...tweet,
+        likes: tweet.likesCount || 0,
+        isLiked: tweet.isLiked || false
+      }));
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching tweets:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const createTweet = async (content) => {
+  try {
+    const response = await apiClient.post('/tweets', { content });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating tweet:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const updateTweet = async (tweetId, content) => {
+  try {
+    const response = await apiClient.patch(`/tweets/${tweetId}`, { content });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating tweet:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const deleteTweet = async (tweetId) => {
+  try {
+    const response = await apiClient.delete(`/tweets/${tweetId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting tweet:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const getUserTweets = async (userId, page = 1, limit = 10) => {
+  try {
+    const response = await apiClient.get(`/tweets/user/${userId}?page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user tweets:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const toggleLike = async (type, id) => {
+  try {
+    const response = await apiClient.post(`/likes/toggle/${type}/${id}`);
+    return {
+      success: true,
+      data: {
+        liked: response.data.data.liked,
+        likesCount: response.data.data.likesCount || 0
+      }
+    };
+  } catch (error) {
+    console.error(`Error toggling ${type} like:`, error);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Failed to toggle like',
+      data: { liked: false, likesCount: 0 }
+    };
+  }
+};
+
+export const getLikedVideos = async () => {
+  try {
+    const response = await apiClient.get('/likes/videos');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching liked videos:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Add this new function to get likes count
+export const getLikesCount = async (type, id) => {
+  try {
+    const response = await apiClient.get(`/likes/count/${type}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching likes count:", error);
+    return { success: false, count: 0 };
+  }
+};

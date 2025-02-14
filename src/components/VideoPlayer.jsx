@@ -6,7 +6,7 @@ import {
   ArrowsPointingInIcon, ArrowsPointingOutIcon 
 } from '@heroicons/react/24/solid';
 
-export default function VideoPlayer({ videoUrl, title }) {
+export function VideoPlayer({ videoUrl, title }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -24,6 +24,14 @@ export default function VideoPlayer({ videoUrl, title }) {
   const [controlsVisible, setControlsVisible] = useState(true);
   const controlsTimeoutRef = useRef(null);
 
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+
+  // Add new states for mobile controls
+  const [doubleTapSide, setDoubleTapSide] = useState(null);
+  const [showForwardRewind, setShowForwardRewind] = useState(false);
+
+
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
   }, []);
@@ -36,7 +44,10 @@ export default function VideoPlayer({ videoUrl, title }) {
 
   // Auto-hide controls when playing
   useEffect(() => {
-    if (isPlaying && isTouchDevice) {
+    if (isPlaying && isTouchDevice && controlsVisible) {
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
       controlsTimeoutRef.current = setTimeout(() => {
         setControlsVisible(false);
       }, 3000);
@@ -46,7 +57,7 @@ export default function VideoPlayer({ videoUrl, title }) {
         clearTimeout(controlsTimeoutRef.current);
       }
     };
-  }, [isPlaying, isTouchDevice]);
+  }, [isPlaying, isTouchDevice, controlsVisible]);
 
   const formatTime = (timeInSeconds) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -81,20 +92,6 @@ export default function VideoPlayer({ videoUrl, title }) {
     const clickPosition = (e.clientX - progressBar.getBoundingClientRect().left) / progressBar.offsetWidth;
     const newTime = clickPosition * videoRef.current.duration;
     videoRef.current.currentTime = newTime;
-  };
-
-  const handleTouchContainer = () => {
-    if (isTouchDevice) {
-      setControlsVisible(prev => !prev);
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
-      if (isPlaying) {
-        controlsTimeoutRef.current = setTimeout(() => {
-          setControlsVisible(false);
-        }, 3000);
-      }
-    }
   };
 
   const handleVolumeChange = (e) => {
@@ -234,6 +231,60 @@ export default function VideoPlayer({ videoUrl, title }) {
     };
   }, [isDragging, handleProgressMouseMove]);
 
+  const handleTouchStart = (e) => {
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now()
+    };
+  };
+
+  const handleVideoTouch = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchDuration = Date.now() - touchStartPos.current.time;
+    const deltaX = Math.abs(touchEndX - touchStartPos.current.x);
+    const deltaY = Math.abs(touchEndY - touchStartPos.current.y);
+    
+    // Handle different touch gestures
+    if (deltaX < 10 && deltaY < 10) {
+      // Single tap
+      if (touchDuration < 300) {
+        const currentTime = Date.now();
+        const tapLength = currentTime - lastTapTime;
+        
+        if (tapLength < 300 && tapLength > 0) {
+          // Double tap - handle seeking
+          const screenWidth = window.innerWidth;
+          const tapX = touchEndX;
+          
+          if (tapX < screenWidth / 2) {
+            // Double tap left - rewind 10s
+            setDoubleTapSide('left');
+            videoRef.current.currentTime = Math.max(videoRef.current.currentTime - 10, 0);
+          } else {
+            // Double tap right - forward 10s
+            setDoubleTapSide('right');
+            videoRef.current.currentTime = Math.min(videoRef.current.currentTime + 10, videoRef.current.duration);
+          }
+          setShowForwardRewind(true);
+          setTimeout(() => setShowForwardRewind(false), 500);
+        } else {
+          // Single tap - toggle controls
+          setControlsVisible(prev => !prev);
+        }
+        setLastTapTime(currentTime);
+      }
+    } else if (deltaX > deltaY && deltaX > 30) {
+      // Horizontal swipe - seek
+      const seekAmount = (touchEndX - touchStartPos.current.x) / window.innerWidth * 30;
+      videoRef.current.currentTime = Math.max(0, Math.min(videoRef.current.duration, videoRef.current.currentTime + seekAmount));
+    }
+  };
+
   // Update video configuration
   const videoConfig = {
     crossOrigin: "anonymous",
@@ -246,14 +297,14 @@ export default function VideoPlayer({ videoUrl, title }) {
   return (
     <div 
       ref={containerRef}
-      className="relative group w-full aspect-video bg-black overflow-hidden select-none" // Added select-none
-      onTouchStart={handleTouchContainer}
-      onTouchEnd={(e) => e.stopPropagation()}
+      className="relative group w-full aspect-video bg-black overflow-hidden select-none"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleVideoTouch}
     >
       <video
         ref={videoRef}
         className="w-full h-full cursor-pointer"
-        onClick={handlePlayPause}
+        onClick={isTouchDevice ? undefined : handlePlayPause}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         {...videoConfig}
@@ -265,54 +316,93 @@ export default function VideoPlayer({ videoUrl, title }) {
         Your browser does not support the video tag.
       </video>
 
-      {/* Controls overlay - Modified to prevent overflow */}
+      {/* Double tap indicators */}
+      {showForwardRewind && doubleTapSide && (
+        <div 
+          className={`absolute top-1/2 -translate-y-1/2 ${
+            doubleTapSide === 'left' ? 'left-8' : 'right-8'
+          } bg-black/60 rounded-full p-4`}
+        >
+          <div className="text-white text-center">
+            <div className="text-2xl font-bold">
+              {doubleTapSide === 'left' ? '-10s' : '+10s'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Play/Pause overlay for touch devices */}
+      {isTouchDevice && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handlePlayPause();
+          }}
+        >
+          <div className={`transition-opacity duration-200 ${controlsVisible ? 'opacity-0' : 'opacity-100'}`}>
+            {isPlaying ? (
+              <PauseIcon className="w-16 h-16 text-white opacity-70" />
+            ) : (
+              <PlayIcon className="w-16 h-16 text-white opacity-70" />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Controls overlay */}
       <div 
         className={`absolute bottom-0 left-0 right-0 p-2 sm:p-4 transition-all duration-300 ${
-          isTouchDevice 
-            ? controlsVisible ? 'translate-y-0' : 'translate-y-full' 
-            : 'translate-y-full group-hover:translate-y-0'
-        }`}
+          controlsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'
+        } z-10`}
         style={{ 
           background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
-          pointerEvents: isTouchDevice ? (controlsVisible ? 'auto' : 'none') : 'auto'
+          pointerEvents: controlsVisible ? 'auto' : 'none'
         }}
+        onTouchStart={(e) => e.stopPropagation()}
       >
-        {/* Progress bar - Updated with drag functionality */}
+        {/* Progress bar */}
         <div 
           ref={progressBarRef}
-          className="w-full h-0.5 sm:h-1 bg-gray-600/60 cursor-pointer mb-2 sm:mb-3 rounded-full relative"
+          className="w-full h-3 bg-gray-600/60 cursor-pointer mb-2 sm:mb-3 rounded-full relative touch-none"
           onClick={handleProgressClick}
-          onMouseDown={handleProgressMouseDown}
+          onTouchStart={handleProgressMouseDown}
+          onTouchMove={handleProgressMouseMove}
+          onTouchEnd={handleProgressMouseUp}
         >
           <div 
             className="h-full bg-indigo-600 relative rounded-full"
             style={{ width: `${progress}%` }}
           >
             <div 
-              className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-indigo-600 rounded-full transition-transform hover:scale-150 ${
-                isTouchDevice 
-                  ? controlsVisible ? 'opacity-100' : 'opacity-0' 
-                  : isDragging ? 'opacity-100 scale-150' : 'opacity-0 group-hover:opacity-100'
+              className={`absolute -right-1 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-indigo-600 rounded-full transition-transform ${
+                isDragging ? 'scale-150' : controlsVisible ? 'scale-100' : 'scale-0'
               }`}
             />
           </div>
         </div>
 
-        {/* Controls - Updated with volume and fullscreen */}
+        {/* Controls */}
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-2 sm:gap-4">
             <button 
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePlayPause();
+              }}
               onClick={handlePlayPause}
-              className="p-1 sm:p-2 hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
             >
               {isPlaying ? (
-                <PauseIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                <PauseIcon className="w-8 h-8" />
               ) : (
-                <PlayIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                <PlayIcon className="w-8 h-8" />
               )}
             </button>
             
-            {/* Volume controls */}
+            {/* Volume controls - hidden on mobile */}
             <div className="hidden sm:flex items-center gap-2">
               <button
                 onClick={handleMuteToggle}
@@ -331,7 +421,7 @@ export default function VideoPlayer({ videoUrl, title }) {
                 step="0.1"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 bg-gray-600/60 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                className="w-20 h-1 bg-gray-600/60 rounded-full appearance-none cursor-pointer"
               />
             </div>
 
@@ -340,10 +430,9 @@ export default function VideoPlayer({ videoUrl, title }) {
             </span>
           </div>
 
-          {/* Fullscreen button */}
           <button
             onClick={handleFullscreenToggle}
-            className="p-1 sm:p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
             {isFullscreen ? (
               <ArrowsPointingInIcon className="w-6 h-6" />
@@ -361,3 +450,5 @@ VideoPlayer.propTypes = {
   videoUrl: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
 };
+
+export default VideoPlayer;

@@ -1,15 +1,26 @@
-import { Outlet } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { useEffect } from 'react';
+import useVideo from './context/useVideo';
 
 export default function Layout() {
+  const location = useLocation();
+  const { clearVideos } = useVideo();
+
+  useEffect(() => {
+    if (location.pathname === '/search') {
+      clearVideos();
+    }
+  }, [location.pathname, clearVideos]);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <Navbar />
-      <main className="flex-1">
+      <main className="min-h-screen bg-gray-100">
         <Outlet />
       </main>
       <Footer />
-    </div>
+    </>
   );
 }

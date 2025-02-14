@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useRef } from 'react';
+import { createContext, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { getChannel } from '../services/Services';
 
@@ -7,8 +7,8 @@ const VideoContext = createContext();
 function VideoProvider({ children }) {
   const [videos, setVideos] = useState([]);
   const [ownerDetails, setOwnerDetails] = useState({});
-  const [totalPages, setTotalPages] = useState(0); // Add totalPages state
-  const cachedPagesRef = useRef({});
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const updateOwnerDetails = useCallback((username, details) => {
     setOwnerDetails(prev => ({
@@ -28,27 +28,16 @@ function VideoProvider({ children }) {
     }
   }, [updateOwnerDetails]);
 
-  const getCachedVideos = useCallback((page) => {
-    const cachedData = cachedPagesRef.current[page];
-    if (cachedData && Date.now() - cachedData.timestamp < 5 * 60 * 1000) {
-      return {
-        videos: cachedData.videos,
-        totalPages: cachedData.totalPages
-      };
-    }
-    return null;
-  }, []);
-
   const updateVideos = useCallback((newVideos, page, newTotalPages) => {
-    setVideos(newVideos);
-    setTotalPages(newTotalPages); // Update total pages
-    cachedPagesRef.current[page] = {
-      videos: newVideos,
-      totalPages: newTotalPages,
-      timestamp: Date.now()
-    };
-    
-    // Fetch owner details for each video
+    if (page === 1) {
+      setVideos(newVideos);
+    } else {
+      setVideos(prev => [...prev, ...newVideos]);
+    }
+    setCurrentPage(page);
+    setTotalPages(newTotalPages);
+
+    // Fetch owner details for new videos
     newVideos.forEach(video => {
       if (video.owner?.username && !ownerDetails[video.owner.username]) {
         fetchOwnerDetails(video.owner.username);
@@ -56,14 +45,20 @@ function VideoProvider({ children }) {
     });
   }, [ownerDetails, fetchOwnerDetails]);
 
+  const clearVideos = useCallback(() => {
+    setVideos([]);
+    setCurrentPage(1);
+    setTotalPages(0);
+  }, []);
+
   const value = {
     videos,
     updateVideos,
+    clearVideos,
     ownerDetails,
-    updateOwnerDetails,
-    getCachedVideos,
-    fetchOwnerDetails,
-    totalPages // Add totalPages to context value
+    currentPage,
+    totalPages,
+    fetchOwnerDetails
   };
 
   return (

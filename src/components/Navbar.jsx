@@ -2,24 +2,32 @@ import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuIt
 import vidzyLogo from '../assets/logo/vidzy.svg'
 import { useUser } from '../context/useUser';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';  // Changed from react-router-dom to react-router
 import { getSecureUrl } from '../utils/secureUrl';
-
-const navigation = [
-  { name: 'Home', href: '/', current: true },
-  { name: 'Search', href: '/wip', current: false },
-  { name: 'Tweets', href: '/wip', current: false },
-  { name: 'Dashboard', href: '/wip', current: false },
-]
-
+import { useState, useEffect } from 'react';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
 export default function Navbar() {
+  const location = useLocation();
   const { user, logout } = useUser();
   const navigate = useNavigate();
+  const [navigation, setNavigation] = useState([
+    { name: 'Home', href: '/', current: true },
+    { name: 'Search', href: '/search', current: false },
+    { name: 'Tweets', href: '/tweets', current: false },
+    { name: 'Dashboard', href: '/dashboard', current: false }, // Updated from '/wip' to '/dashboard'
+  ]);
+
+  // Update current navigation based on location
+  useEffect(() => {
+    setNavigation(prev => prev.map(item => ({
+      ...item,
+      current: item.href === location.pathname
+    })));
+  }, [location]);
 
   const handleLogout = () => {
     logout();
