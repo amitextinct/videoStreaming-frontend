@@ -1,7 +1,6 @@
 import { useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import VideoPlayer from '../components/VideoPlayer';
-import useVideo from '../context/useVideo';
 import { Navigate } from 'react-router';
 import { getSecureUrl } from '../utils/secureUrl';
 import Comments from '../components/Comments';

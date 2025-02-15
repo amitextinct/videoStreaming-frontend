@@ -17,6 +17,7 @@ import Search from './pages/Search.jsx'
 import Tweets from './pages/Tweets.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Channel from './pages/Channel.jsx'
+import Profile from './pages/Profile.jsx'
 import './index.css'
 
 const router = createBrowserRouter(
@@ -36,6 +37,7 @@ const router = createBrowserRouter(
       <Route path="watch/:videoId" element={<Watching />} />
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="channel/:username" element={<Channel />} />
+      <Route path="profile" element={<Profile />} />
       <Route path="*" element={<NotFound />} />
     </Route>
   )

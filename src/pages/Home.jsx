@@ -13,11 +13,6 @@ function Home() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const fetchVideos = useCallback(async () => {
-    if (videos.length > 0) {
-      setIsLoading(false);
-      return;
-    }
-    
     try {
       setIsLoading(true);
       const response = await apiClient.get('/videos?page=1&limit=9&sortType=-1&isPublished=true');
@@ -29,7 +24,7 @@ function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [videos.length, updateVideos]);
+  }, [updateVideos]);
 
   const fetchNextPage = useCallback(async () => {
     if (isPaginationLoading) return;

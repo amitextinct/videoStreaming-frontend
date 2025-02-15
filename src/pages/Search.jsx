@@ -7,7 +7,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { updateVideos, videos, totalPages, currentPage } = useVideo();
+  const { updateVideos, videos, totalPages, currentPage, clearVideos } = useVideo();
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
 
@@ -32,6 +32,12 @@ export default function Search() {
       fetchVideos(1, query);
     }
   }, [searchParams, fetchVideos]);
+
+  useEffect(() => {
+    return () => {
+      clearVideos(); // Clear videos when leaving search page
+    };
+  }, [clearVideos]);
 
   const handleSearch = (e) => {
     e.preventDefault();
